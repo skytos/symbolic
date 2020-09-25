@@ -6,7 +6,7 @@ import (
 )
 
 type expression interface {
-	string() string
+	String() string
 	derivative(v variable) expression
 	evaluate(vals map[string]float64) float64
 }
@@ -43,7 +43,7 @@ var one = constant{1}
 var negativeOne = constant{-1}
 var zero = constant{0}
 
-func (e constant) string() string {
+func (e constant) String() string {
 	return fmt.Sprintf("%v", e.value)
 }
 
@@ -55,7 +55,7 @@ func (e constant) evaluate(_vals map[string]float64) float64 {
 	return e.value
 }
 
-func (e variable) string() string {
+func (e variable) String() string {
 	return e.name
 }
 
@@ -70,8 +70,8 @@ func (e variable) evaluate(vals map[string]float64) float64 {
 	return vals[e.name]
 }
 
-func (e sum) string() string {
-	return fmt.Sprintf("(%v+%v)", e.a, e.b)
+func (e sum) String() string {
+	return fmt.Sprintf("(%v + %v)", e.a, e.b)
 }
 
 func (e sum) derivative(v variable) expression {
@@ -82,8 +82,8 @@ func (e sum) evaluate(vals map[string]float64) float64 {
 	return e.a.evaluate(vals) + e.b.evaluate(vals)
 }
 
-func (e product) string() string {
-	return fmt.Sprintf("(%v*%v)", e.a, e.b)
+func (e product) String() string {
+	return fmt.Sprintf("(%v * %v)", e.a, e.b)
 }
 
 func (e product) derivative(v variable) expression {
@@ -97,7 +97,7 @@ func (e product) evaluate(vals map[string]float64) float64 {
 	return e.a.evaluate(vals) * e.b.evaluate(vals)
 }
 
-func (e power) string() string {
+func (e power) String() string {
 	return fmt.Sprintf("%v^%v", e.base, e.exponent)
 }
 
@@ -113,7 +113,7 @@ func (e power) evaluate(vals map[string]float64) float64 {
 	return math.Pow(e.base.evaluate(vals), e.exponent.evaluate(vals))
 }
 
-func (e sin) string() string {
+func (e sin) String() string {
 	return fmt.Sprintf("sin(%v)", e.value)
 }
 
@@ -124,7 +124,8 @@ func (e sin) derivative(v variable) expression {
 func (e sin) evaluate(vals map[string]float64) float64 {
 	return math.Sin(e.value.evaluate(vals))
 }
-func (e cos) string() string {
+
+func (e cos) String() string {
 	return fmt.Sprintf("cos(%v)", e.value)
 }
 
@@ -186,11 +187,13 @@ func main() {
 		},
 	}
 
-	derivativeofdistance := distance.derivative(a)
+	derivativeOfDistance := distance.derivative(a)
+
+	fmt.Println(derivativeOfDistance)
 
 	for i, z := 0, 0.5; i < 10; i++ {
 		fmt.Println(z)
-		z = euler(derivativeofdistance, a).evaluate(
+		z = euler(derivativeOfDistance, a).evaluate(
 			map[string]float64{"h": 1.5, "s": 1.0, "a": z},
 		)
 	}
