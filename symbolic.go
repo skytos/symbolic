@@ -145,6 +145,26 @@ func invert(e expression) expression {
 	return power{e, negativeOne}
 }
 
+func add(e1, e2 expression) expression {
+	return sum{e1,e2}
+}
+
+func sub(e1, e2 expression) expression {
+	return sum{e1,negate(e2)}
+}
+
+func mul(e1, e2 expression) expression {
+	return product{e1,e2}
+}
+
+func div(e1, e2 expression) expression {
+	return product{e1,invert(e2)}
+}
+
+func pow(e1, e2 expression) expression {
+	return power{e1,e2}
+}
+
 func euler(e expression, v variable) expression {
 	return sum{v, negate(product{e, invert(e.derivative(v))})}
 }
@@ -169,32 +189,60 @@ func quadratic(a, b, c expression) expression {
 }
 
 func main() {
-	h := variable{"h"}
-	s := variable{"s"}
-	a := variable{"a"}
+	two := constant{2.0}
+	three := constant{3.0}
+	four := constant{4.0}
 
-	time := quadratic(
-		constant{-9.8},
-		product{s, sin{a}},
-		h,
-	)
+	m1 := variable{"m1"}
+	m2 := variable{"m2"}
+	m3 := variable{"m3"}
+	m4 := variable{"m4"}
+	b3 := variable{"b3"}
+	
+	b4 := div(mul(b3,m4), m3)
+	l := negate(div(b3,m3))
+	h1 := div(mul(m1,b3), sub(m1, m3))
+	h2 := div(mul(m2,b3), sub(m2, m3))
+	h3 := div(mul(m2,b4), sub(m2, m4))
+	h4 := div(mul(m1,b4), sub(m1, m4))
+	a := div(mul(l, h2), two)
+	b := sub(div(mul(l, h1), two), a)
+	c := sub(div(mul(l, h3), two), a)
+	d := sub(sub(sub(div(mul(l, h4), two), a), b), c)
 
-	distance := product{
-		s,
-		product{
-			cos{a},
-			time,
-		},
+	ea := pow(sub(four, a), two)
+	eb := pow(sub(three, b), two)
+	ec := pow(sub(two, c), two)
+
+	e := add(ea, add(eb, ec))
+
+	gm1 := e.derivative(m1)
+	gm2 := e.derivative(m2)
+	gm3 := e.derivative(m3)
+	gm4 := e.derivative(m4)
+	gb3 := e.derivative(b3)
+
+	vars := map[string]float64{
+		"m1": 0.5,
+		"m2": 0.2,
+		"m3": -0.27,
+		"m4": -0.8,
+		"b3": 2.24,
 	}
+	for i := 0; i < 100000; i++ {
+		delta := 0.0001
+		dm1 := -delta * gm1.evaluate(vars)
+		dm2 := -delta * gm2.evaluate(vars)
+		dm3 := -delta * gm3.evaluate(vars)
+		dm4 := -delta * gm4.evaluate(vars)
+		db3 := -delta * gb3.evaluate(vars)
 
-	derivativeOfDistance := distance.derivative(a)
+		vars["m1"] += dm1
+		vars["m2"] += dm2
+		vars["m3"] += dm3
+		vars["m4"] += dm4
+		vars["b3"] += db3
 
-	fmt.Println(derivativeOfDistance)
-
-	for i, z := 0, 0.5; i < 10; i++ {
-		fmt.Println(z)
-		z = euler(derivativeOfDistance, a).evaluate(
-			map[string]float64{"h": 1.5, "s": 1.0, "a": z},
-		)
 	}
+	fmt.Println(a.evaluate(vars), b.evaluate(vars), c.evaluate(vars), d.evaluate(vars))
 }
